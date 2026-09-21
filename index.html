@@ -122,8 +122,16 @@
   }
   .recipe-card:hover{transform:translateY(-2px);}
   .recipe-thumb{
-    font-size:2.6rem;display:flex;align-items:center;justify-content:center;
-    background:var(--accent-soft);height:84px;
+    position:relative;height:140px;background:var(--accent-soft);overflow:hidden;
+  }
+  .recipe-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .thumb-emoji{
+    position:absolute;inset:0;font-size:2.6rem;display:flex;align-items:center;justify-content:center;
+    background:var(--accent-soft);
+  }
+  .variant-badge{
+    position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:#fff;
+    font-size:0.72rem;padding:3px 8px;border-radius:999px;backdrop-filter:blur(2px);
   }
   .recipe-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1;}
   .recipe-body h3{margin:0;font-size:0.98rem;line-height:1.3;}
@@ -132,6 +140,8 @@
   .recipe-macros{display:flex;gap:10px;font-size:0.78rem;color:var(--text-muted);margin-top:2px;}
   .recipe-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
   .tag-pill{font-size:0.7rem;background:var(--green);color:#fff;border-radius:999px;padding:2px 8px;opacity:.85;}
+  .tag-pill.sucre{background:#c77dbd;}
+  .tag-pill.sale{background:#6b8fb0;}
 
   #loadMoreWrap{text-align:center;margin:20px 0;}
 
@@ -142,11 +152,14 @@
   .modal-overlay.open{display:flex;}
   .modal{
     background:var(--bg-card);border-radius:var(--radius);max-width:640px;width:100%;
-    padding:22px 22px 26px;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.3);
+    padding:0 0 26px;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.3);overflow:hidden;
   }
-  .modal-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted);}
-  .modal h2{margin:6px 30px 4px 0;}
-  .modal .modal-thumb{font-size:2.4rem;}
+  .modal-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,0.45);color:#fff;border:none;
+    width:32px;height:32px;border-radius:50%;font-size:1.1rem;cursor:pointer;z-index:2;}
+  .modal-photo{position:relative;height:200px;background:var(--accent-soft);}
+  .modal-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+  .modal-body{padding:18px 22px 0;}
+  .modal h2{margin:6px 0 4px;font-size:1.3rem;}
   .modal-section{margin-top:16px;}
   .modal-section h4{margin:0 0 8px;font-size:0.9rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
   .modal ul{margin:0;padding-left:20px;}
@@ -155,12 +168,15 @@
   .modal-macros{display:flex;flex-wrap:wrap;gap:10px;font-size:0.85rem;}
   .modal-macros div{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 12px;text-align:center;min-width:70px;}
   .modal-macros div b{display:block;font-size:1.05rem;}
+  .variant-picker{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+  .variant-picker .chip{font-size:0.8rem;padding:6px 12px;}
 
   footer{text-align:center;color:var(--text-muted);font-size:0.78rem;padding:20px;}
 
   @media (max-width:480px){
     header.app-header h1{font-size:1.4rem;}
     .recipe-grid{grid-template-columns:1fr 1fr;}
+    .recipe-thumb{height:100px;}
   }
 </style>
 </head>
@@ -180,6 +196,17 @@
       <div class="field" style="max-width:140px;">
         <input type="number" id="f-personnes" min="1" max="12" value="2">
       </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="opt-header">
+      <h2>🍩 Salé ou sucré ?</h2>
+    </div>
+    <div class="chips" id="sucre-sale-chips">
+      <div class="chip selected" data-val="">🤷 Peu importe</div>
+      <div class="chip" data-val="sale">🧂 Salé</div>
+      <div class="chip" data-val="sucre">🍯 Sucré</div>
     </div>
   </section>
 
@@ -258,7 +285,7 @@
 
 </div>
 
-<footer>Fait maison, sans dépendance externe. 🧡</footer>
+<footer>Fait maison, sans dépendance externe. 🧡 Photos : Wikimedia Commons.</footer>
 
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal" id="modal-content"></div>
@@ -1429,6 +1456,40 @@ const RECIPES = [
 {"id": "tartines-thon-et-avocat-fruit", "nom": "Tartines thon et avocat + fruit", "repas": "petit_dej", "cuisine": "petit-déj", "type": "tartines", "temps_min": 10, "portions": 1, "ingredients": [{"id": "pain_complet", "g": 80}, {"id": "thon", "g": 60}, {"id": "avocat", "g": 50}, {"id": "citron", "g": 5}, {"id": "banane", "g": 100}], "etapes": ["Fais griller le pain.", "Écrase l'avocat avec le citron, tartine, ajoute le thon émietté.", "Sers avec une banane."], "par_portion": {"kcal": 440, "prot": 24.2, "gluc": 56.9, "lip": 10.1, "prix": 1.6}, "niveaux": {"energie": "moyen", "proteines": "riche", "budget": "moyen"}, "regimes": ["sans_lactose", "sans_porc"], "allergenes": ["gluten", "poisson"], "categories": ["poisson"]}
 ]
 ;
+const PHOTO_MAP = {
+  "pâtes": "https://commons.wikimedia.org/wiki/Special:FilePath/Spaghetti_al_Pomodoro.JPG?width=800",
+  "bowl": "https://commons.wikimedia.org/wiki/Special:FilePath/Healthy_Gnocchi_Buddha_Bowl.jpg?width=800",
+  "salade": "https://commons.wikimedia.org/wiki/Special:FilePath/Composed_salad.jpg?width=800",
+  "mijoté": "https://commons.wikimedia.org/wiki/Special:FilePath/Beef_stew_(15707525894).jpg?width=800",
+  "four": "https://commons.wikimedia.org/wiki/Special:FilePath/Roasted_Chicken,_Butterflied,_on_Potatoes,_Baking_Pan_01.jpg?width=800",
+  "wok": "https://commons.wikimedia.org/wiki/Special:FilePath/Healthy_Chicken_and_Vegetables_Stir_Fry.jpg?width=800",
+  "curry": "https://commons.wikimedia.org/wiki/Special:FilePath/Goan_Fish_Curry_Rice.jpg?width=800",
+  "poisson": "https://commons.wikimedia.org/wiki/Special:FilePath/Grilled_plated_salmon_fillet.jpg?width=800",
+  "légumineuses": "https://commons.wikimedia.org/wiki/Special:FilePath/Tatte_Chickpea_and_fava_plate.jpg?width=800",
+  "soupe": "https://commons.wikimedia.org/wiki/Special:FilePath/Califlower_veloute_at_Hibiscus.jpg?width=800",
+  "œufs": "https://commons.wikimedia.org/wiki/Special:FilePath/2022-04-08_19_21_15_Two_sunny-side_up_eggs_on_a_plate_in_the_Franklin_Farm_section_of_Oak_Hill,_Fairfax_County,_Virginia.jpg?width=800",
+  "pita": "https://commons.wikimedia.org/wiki/Special:FilePath/Gyros_pita.jpg?width=800",
+  "wrap": "https://commons.wikimedia.org/wiki/Special:FilePath/Grilled_Chicken_Wrap,_Steel_Magnolias,_Valdosta.JPG?width=800",
+  "burger": "https://commons.wikimedia.org/wiki/Special:FilePath/Cheeseburger_on_a_plate.jpg?width=800",
+  "bol": "https://commons.wikimedia.org/wiki/Special:FilePath/Yogurt,_fruit,_granola_bowl_(34999358091).jpg?width=800",
+  "porridge": "https://commons.wikimedia.org/wiki/Special:FilePath/Oatmeal_with_Blueberries_(5076894938)_2.jpg?width=800",
+  "sandwich": "https://commons.wikimedia.org/wiki/Special:FilePath/Grilled_ham_and_cheese_sandwich.jpg?width=800",
+  "overnight": "https://commons.wikimedia.org/wiki/Special:FilePath/Protein_overnight_oats.jpg?width=800",
+  "végé": "https://commons.wikimedia.org/wiki/Special:FilePath/Ratatouille_001.jpg?width=800",
+  "gratin": "https://commons.wikimedia.org/wiki/Special:FilePath/Gratin_dauphinois.jpg?width=800",
+  "poulet": "https://commons.wikimedia.org/wiki/Special:FilePath/Jerk_chicken_plate.jpg?width=800",
+  "viande": "https://commons.wikimedia.org/wiki/Special:FilePath/Image_of_freshly_prepared_chateaubriand_steak_in_the_traditional_style.jpg?width=800",
+  "riz": "https://commons.wikimedia.org/wiki/Special:FilePath/Hokkien_Fried_Rice.jpg?width=800",
+  "nouilles": "https://commons.wikimedia.org/wiki/Special:FilePath/Stir-fried_rice_noodles_in_Nanchang_(20190619175008).jpg?width=800",
+  "couscous": "https://commons.wikimedia.org/wiki/Special:FilePath/Moroccan_cuisine-Couscous_with_vegetables.jpg?width=800",
+  "pizza": "https://commons.wikimedia.org/wiki/Special:FilePath/Pizza_Margherita_stu_spivack.jpg?width=800",
+  "chia": "https://commons.wikimedia.org/wiki/Special:FilePath/Chia_Pudding.PNG?width=800",
+  "crêpes": "https://commons.wikimedia.org/wiki/Special:FilePath/Cr%C3%AApes_con_la_Nutella.JPG?width=800",
+  "pancakes": "https://commons.wikimedia.org/wiki/Special:FilePath/Pancakes_with_fruit.jpg?width=800",
+  "tartines_sucre": "https://commons.wikimedia.org/wiki/Special:FilePath/A_B_Sandwich.jpg?width=800",
+  "tartines_sale": "https://commons.wikimedia.org/wiki/Special:FilePath/Avocado_toast_with_eggs_(28508171495).jpg?width=800"
+}
+;
 
 /* ---------- Static config ---------- */
 
@@ -1457,6 +1518,21 @@ const TYPE_EMOJI = {
 };
 function recipeEmoji(r){
   return TYPE_EMOJI[r.type] || (r.repas === "petit_dej" ? "🍳" : "🍽️");
+}
+function recipePhotoUrl(r){
+  if(r.type === "tartines"){
+    return PHOTO_MAP[r._repasType === "sucre" ? "tartines_sucre" : "tartines_sale"] || null;
+  }
+  return PHOTO_MAP[r.type] || null;
+}
+function thumbHtml(r){
+  const url = recipePhotoUrl(r);
+  const emoji = recipeEmoji(r);
+  if(url){
+    return `<img src="${url}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div class="thumb-emoji" style="display:none;">${emoji}</div>`;
+  }
+  return `<div class="thumb-emoji" style="display:flex;">${emoji}</div>`;
 }
 
 const WORLD_CUISINES = new Set(["italienne","asiatique","méditerranéenne","indienne","moyen-orientale",
@@ -1500,14 +1576,69 @@ function detectEquipment(r){
   return set;
 }
 
+/* ---------- Sucré / salé classification ---------- */
+
+const SAVORY_KW = ["jambon","œuf","oeuf","thon","saumon","houmous","avocat"];
+const SWEET_KW = ["miel","banane","chocolat","confiture","pomme"];
+
+function classifyTartine(nom){
+  const base = nom.replace(/\s*\+\s*(fruit|yaourt)$/i, "");
+  const low = base.toLowerCase();
+  const hasSavory = SAVORY_KW.some(k => low.includes(k));
+  const hasSweet = SWEET_KW.some(k => low.includes(k));
+  if(hasSweet && !hasSavory) return "sucre";
+  return "sale";
+}
+const SWEET_TYPES = new Set(["bol","porridge","overnight","chia","crêpes","pancakes"]);
+function classifyRepas(r){
+  if(r.repas === "plat") return "sale";
+  if(r.type === "œufs") return "sale";
+  if(r.type === "tartines") return classifyTartine(r.nom);
+  if(SWEET_TYPES.has(r.type)) return "sucre";
+  return "sale";
+}
+for(const r of RECIPES){ r._repasType = classifyRepas(r); }
+
+/* ---------- Recipe families (factorize near-duplicate variants) ----------
+   Two recipes are treated as variants of the same "family" when they share
+   the same type/cuisine/time/step-count/ingredient-count AND their
+   ingredient sets differ by at most 2 ids (e.g. one swapped protein or
+   topping). This is computed on the currently filtered result set each
+   time recipes are generated (see groupIntoFamilies). */
+
+function bucketSig(r){
+  return r.type + "|" + r.cuisine + "|" + r.temps_min + "|" + r.ingredients.length + "|" + r.etapes.length;
+}
+function ingSet(r){
+  if(!r._ingSet) r._ingSet = new Set(r.ingredients.map(i => i.id));
+  return r._ingSet;
+}
+function symDiffSize(a, b){
+  let count = 0;
+  for(const x of a){ if(!b.has(x)) count++; }
+  for(const x of b){ if(!a.has(x)) count++; }
+  return count;
+}
+
 /* ---------- State ---------- */
 
 const state = {
   excludedIngredients: new Set(),
   excludedEquipment: new Set(),
   selectedTypes: new Set(),
+  sucreSale: "",
   visibleCount: 24,
 };
+
+/* ---------- Build static UI: sucré/salé chips ---------- */
+
+document.querySelectorAll("#sucre-sale-chips .chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    document.querySelectorAll("#sucre-sale-chips .chip").forEach(c => c.classList.remove("selected"));
+    chip.classList.add("selected");
+    state.sucreSale = chip.dataset.val;
+  });
+});
 
 /* ---------- Build static UI: ingredient checklist ---------- */
 
@@ -1656,6 +1787,9 @@ document.getElementById("btn-reset").addEventListener("click", () => {
   state.selectedTypes.clear();
   state.excludedIngredients.clear();
   state.excludedEquipment.clear();
+  state.sucreSale = "";
+  document.querySelectorAll("#sucre-sale-chips .chip").forEach(c => c.classList.remove("selected"));
+  document.querySelector('#sucre-sale-chips .chip[data-val=""]').classList.add("selected");
   buildIngredientUI();
   buildEquipmentUI();
   buildTypeChips();
@@ -1690,6 +1824,7 @@ function getFilters(){
 }
 
 function recipeMatches(r, f){
+  if(state.sucreSale && r._repasType !== state.sucreSale) return false;
   for(const mt of MEAL_TYPES){
     if(state.selectedTypes.has(mt.id) && !mt.test(r)) return false;
   }
@@ -1706,13 +1841,47 @@ function recipeMatches(r, f){
   return true;
 }
 
+/* ---------- Grouping into families ---------- */
+
+function groupIntoFamilies(recipes){
+  const buckets = new Map();
+  for(const r of recipes){
+    const key = bucketSig(r);
+    if(!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(r);
+  }
+  const families = [];
+  for(const items of buckets.values()){
+    const clusters = [];
+    for(const r of items){
+      const sr = ingSet(r);
+      let placed = false;
+      for(const cluster of clusters){
+        if(cluster.every(o => symDiffSize(sr, ingSet(o)) <= 2)){
+          cluster.push(r);
+          placed = true;
+          break;
+        }
+      }
+      if(!placed) clusters.push([r]);
+    }
+    families.push(...clusters);
+  }
+  for(const variants of families){
+    variants.sort((a,b) => a.nom.length - b.nom.length || a.nom.localeCompare(b.nom, "fr"));
+  }
+  families.sort((a,b) => a[0].nom.localeCompare(b[0].nom, "fr"));
+  return families;
+}
+
 /* ---------- Rendering results ---------- */
 
-let currentResults = [];
+let currentFamilies = [];
 
 function renderResults(){
   const f = getFilters();
-  currentResults = RECIPES.filter(r => recipeMatches(r, f));
+  const matched = RECIPES.filter(r => recipeMatches(r, f));
+  currentFamilies = groupIntoFamilies(matched);
   state.visibleCount = 24;
   paintResults(f);
   document.getElementById("results").scrollIntoView({behavior:"smooth", block:"start"});
@@ -1721,8 +1890,9 @@ function renderResults(){
 function paintResults(f){
   const resultsEl = document.getElementById("results");
   const loadMoreEl = document.getElementById("loadMoreWrap");
+  const totalRecipes = currentFamilies.reduce((s, v) => s + v.length, 0);
 
-  if(currentResults.length === 0){
+  if(currentFamilies.length === 0){
     resultsEl.innerHTML = `
       <div class="results-summary"><h2>Résultats</h2></div>
       <div class="empty-state">😕 Aucune recette ne correspond à tes critères.<br>Essaie d'assouplir un peu (budget, ingrédients, équipements…).</div>`;
@@ -1730,22 +1900,26 @@ function paintResults(f){
     return;
   }
 
-  const shown = currentResults.slice(0, state.visibleCount);
+  const shown = currentFamilies.slice(0, state.visibleCount);
   resultsEl.innerHTML = `
     <div class="results-summary">
       <h2>Résultats</h2>
-      <span style="color:var(--text-muted);font-size:0.88rem;">${currentResults.length} recette${currentResults.length>1?"s":""} trouvée${currentResults.length>1?"s":""}</span>
+      <span style="color:var(--text-muted);font-size:0.88rem;">${currentFamilies.length} recette${currentFamilies.length>1?"s":""} (${totalRecipes} variante${totalRecipes>1?"s":""} au total)</span>
     </div>
     <div class="recipe-grid" id="recipe-grid"></div>`;
 
   const grid = document.getElementById("recipe-grid");
-  for(const r of shown){
+  for(const variants of shown){
+    const r = variants[0];
     const card = document.createElement("div");
     card.className = "recipe-card";
     const kcalTot = Math.round(r.par_portion.kcal * f.personnes);
     const prixTot = (r.par_portion.prix * f.personnes).toFixed(2);
     card.innerHTML = `
-      <div class="recipe-thumb">${recipeEmoji(r)}</div>
+      <div class="recipe-thumb">
+        ${thumbHtml(r)}
+        ${variants.length > 1 ? `<div class="variant-badge">🔀 ${variants.length} variantes</div>` : ""}
+      </div>
       <div class="recipe-body">
         <h3>${r.nom}</h3>
         <div class="recipe-meta">
@@ -1758,18 +1932,19 @@ function paintResults(f){
           <span>💪 ${r.par_portion.prot} g prot</span>
         </div>
         <div class="recipe-tags">
-          ${r.regimes.slice(0,3).map(t => `<span class="tag-pill">${t.replace(/_/g," ")}</span>`).join("")}
+          <span class="tag-pill ${r._repasType}">${r._repasType === "sucre" ? "sucré" : "salé"}</span>
+          ${r.regimes.slice(0,2).map(t => `<span class="tag-pill">${t.replace(/_/g," ")}</span>`).join("")}
         </div>
       </div>`;
-    card.addEventListener("click", () => openModal(r, f.personnes));
+    card.addEventListener("click", () => openModal(variants, 0, f.personnes));
     grid.appendChild(card);
   }
 
   loadMoreEl.innerHTML = "";
-  if(currentResults.length > state.visibleCount){
+  if(currentFamilies.length > state.visibleCount){
     const btn = document.createElement("button");
     btn.className = "btn";
-    btn.textContent = `Voir plus (${currentResults.length - state.visibleCount} restantes)`;
+    btn.textContent = `Voir plus (${currentFamilies.length - state.visibleCount} restantes)`;
     btn.addEventListener("click", () => {
       state.visibleCount += 24;
       paintResults(f);
@@ -1782,48 +1957,76 @@ document.getElementById("btn-generate").addEventListener("click", renderResults)
 
 /* ---------- Modal ---------- */
 
-function openModal(r, personnes){
-  const overlay = document.getElementById("modal-overlay");
+function renderModalDetail(variants, idx, personnes){
+  const r = variants[idx];
   const content = document.getElementById("modal-content");
   const kcalTot = Math.round(r.par_portion.kcal * personnes);
   const protTot = Math.round(r.par_portion.prot * personnes);
   const glucTot = Math.round(r.par_portion.gluc * personnes);
   const lipTot = Math.round(r.par_portion.lip * personnes);
   const prixTot = (r.par_portion.prix * personnes).toFixed(2);
+  const url = recipePhotoUrl(r);
+  const emoji = recipeEmoji(r);
+
+  let variantPickerHtml = "";
+  if(variants.length > 1){
+    variantPickerHtml = `
+      <div class="modal-section">
+        <h4>Variantes (${variants.length})</h4>
+        <div class="variant-picker">
+          ${variants.map((v,i) => `<div class="chip ${i===idx?"selected":""}" data-idx="${i}">${v.nom}</div>`).join("")}
+        </div>
+      </div>`;
+  }
 
   content.innerHTML = `
     <button class="modal-close" id="modal-close">✕</button>
-    <div class="modal-thumb">${recipeEmoji(r)}</div>
-    <h2>${r.nom}</h2>
-    <div class="recipe-meta">
-      <span>⏱️ ${r.temps_min} min</span>
-      <span>👥 ${personnes} pers.</span>
-      <span>💶 ${prixTot} €</span>
-      <span>🌍 ${r.cuisine}</span>
-    </div>
-    <div class="modal-section">
-      <h4>Valeurs nutritionnelles (total pour ${personnes} pers.)</h4>
-      <div class="modal-macros">
-        <div><b>${kcalTot}</b>kcal</div>
-        <div><b>${protTot} g</b>protéines</div>
-        <div><b>${glucTot} g</b>glucides</div>
-        <div><b>${lipTot} g</b>lipides</div>
+    <div class="modal-photo">${
+      url ? `<img src="${url}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="thumb-emoji" style="display:none;">${emoji}</div>`
+          : `<div class="thumb-emoji" style="display:flex;">${emoji}</div>`
+    }</div>
+    <div class="modal-body">
+      <h2>${r.nom}</h2>
+      <div class="recipe-meta">
+        <span>⏱️ ${r.temps_min} min</span>
+        <span>👥 ${personnes} pers.</span>
+        <span>💶 ${prixTot} €</span>
+        <span>🌍 ${r.cuisine}</span>
+        <span class="tag-pill ${r._repasType}" style="border-radius:999px;">${r._repasType === "sucre" ? "sucré" : "salé"}</span>
+      </div>
+      ${variantPickerHtml}
+      <div class="modal-section">
+        <h4>Valeurs nutritionnelles (total pour ${personnes} pers.)</h4>
+        <div class="modal-macros">
+          <div><b>${kcalTot}</b>kcal</div>
+          <div><b>${protTot} g</b>protéines</div>
+          <div><b>${glucTot} g</b>glucides</div>
+          <div><b>${lipTot} g</b>lipides</div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <h4>Ingrédients</h4>
+        <ul>${r.ingredients.map(ing => `<li>${formatQty(ing.id, ing.g * personnes)} — ${INGREDIENTS[ing.id].nom}</li>`).join("")}</ul>
+      </div>
+      <div class="modal-section">
+        <h4>Étapes</h4>
+        <ol>${r.etapes.map(s => `<li>${s}</li>`).join("")}</ol>
+      </div>
+      <div class="modal-section recipe-tags">
+        ${r.regimes.map(t => `<span class="tag-pill">${t.replace(/_/g," ")}</span>`).join("")}
       </div>
     </div>
-    <div class="modal-section">
-      <h4>Ingrédients</h4>
-      <ul>${r.ingredients.map(ing => `<li>${formatQty(ing.id, ing.g * personnes)} — ${INGREDIENTS[ing.id].nom}</li>`).join("")}</ul>
-    </div>
-    <div class="modal-section">
-      <h4>Étapes</h4>
-      <ol>${r.etapes.map(s => `<li>${s}</li>`).join("")}</ol>
-    </div>
-    <div class="modal-section recipe-tags">
-      ${r.regimes.map(t => `<span class="tag-pill">${t.replace(/_/g," ")}</span>`).join("")}
-    </div>
   `;
-  overlay.classList.add("open");
   document.getElementById("modal-close").addEventListener("click", closeModal);
+  content.querySelectorAll(".variant-picker .chip").forEach(chip => {
+    chip.addEventListener("click", () => renderModalDetail(variants, parseInt(chip.dataset.idx, 10), personnes));
+  });
+}
+
+function openModal(variants, idx, personnes){
+  const overlay = document.getElementById("modal-overlay");
+  renderModalDetail(variants, idx, personnes);
+  overlay.classList.add("open");
 }
 function closeModal(){ document.getElementById("modal-overlay").classList.remove("open"); }
 document.getElementById("modal-overlay").addEventListener("click", (e) => {
